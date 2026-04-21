@@ -55,24 +55,22 @@ flowchart TD
 A[Input Video] --> B[ROI Masking]
 B --> C[YOLO Detection]
 
-C --> D[Class Filtering<br>(Car / Person / 2W)]
+C --> D[Class Filtering - Car / Person / 2W]
 D --> E[SORT Tracking]
 
-E --> F[Pixel → World Mapping<br>(Homography)]
+E --> F[Pixel to World Mapping - Homography]
 F --> G[Trajectory History]
 
-G --> H[Velocity Estimation<br>(EMA Smoothing)]
+G --> H[Velocity Estimation - EMA Smoothing]
 H --> I[Speed Calculation]
 
 I --> J[Future Trajectory Prediction]
 
-J --> K[Collision Detection<br>(TTC + Relative Motion)]
-K --> L[Filtering<br>(Lateral + Longitudinal)]
+J --> K[Collision Detection - TTC and Relative Motion]
+K --> L[Filtering - Lateral and Longitudinal]
 
 L --> M[Visualization]
 M --> N[Output Video]
----
-
 ## 🧠 Core Idea
 
 We model each vehicle using:
