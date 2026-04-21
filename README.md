@@ -47,6 +47,31 @@ Unlike traditional systems that rely on proximity, this system is **predictive**
   * Speed estimation (km/h)
 
 ---
+## 🔄 Pipeline Flowchart
+
+```mermaid
+flowchart TD
+
+A[Input Video] --> B[ROI Masking]
+B --> C[YOLO Detection]
+
+C --> D[Class Filtering<br>(Car / Person / 2W)]
+D --> E[SORT Tracking]
+
+E --> F[Pixel → World Mapping<br>(Homography)]
+F --> G[Trajectory History]
+
+G --> H[Velocity Estimation<br>(EMA Smoothing)]
+H --> I[Speed Calculation]
+
+I --> J[Future Trajectory Prediction]
+
+J --> K[Collision Detection<br>(TTC + Relative Motion)]
+K --> L[Filtering<br>(Lateral + Longitudinal)]
+
+L --> M[Visualization]
+M --> N[Output Video]
+---
 
 ## 🧠 Core Idea
 
