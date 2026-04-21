@@ -8,45 +8,10 @@ A computer vision + physics-based system for **multi-class traffic monitoring an
 
 This project detects, tracks, and analyzes traffic participants in a video feed and predicts **potential collisions before they occur** using **time-to-collision (TTC)** and trajectory modeling.
 
-Unlike traditional systems that rely on proximity, this system is **predictive**, leveraging velocity and motion patterns to estimate future interactions.
+Unlike traditional systems that rely only on proximity, this system is **predictive**, leveraging velocity and motion patterns to estimate future interactions.
 
 ---
 
-## 🎯 Key Features
-
-* 🚗 **Multi-class Detection & Tracking**
-
-  * Car (0)
-  * Person (1)
-  * 2-Wheeler (2)
-
-* 📍 **Homography-based World Mapping**
-
-  * Converts pixel coordinates → real-world coordinates (meters)
-
-* 🧠 **Velocity Estimation with EMA Smoothing**
-
-  * Stable and realistic motion tracking
-
-* 🔮 **Future Trajectory Prediction**
-
-  * Visualizes where each object will move
-
-* ⚠️ **Collision Prediction using Time-to-Collision (TTC)**
-
-  * Predicts future collisions based on relative motion
-
-* 🚦 **Advanced Collision Filtering**
-
-  * Lateral + longitudinal thresholds
-  * Avoids false positives (parallel vehicles)
-
-* 📊 **Live Analytics**
-
-  * Vehicle count
-  * Speed estimation (km/h)
-
----
 ## 🔄 Pipeline Flowchart
 
 ```mermaid
@@ -71,25 +36,60 @@ K --> L[Filtering - Lateral and Longitudinal]
 
 L --> M[Visualization]
 M --> N[Output Video]
+```
+
+---
+
+## 🎯 Key Features
+
+* 🚗 **Multi-class Detection & Tracking**
+
+  * Car (0)
+  * Person (1)
+  * 2-Wheeler (2)
+
+* 📍 **Homography-based World Mapping**
+
+  * Converts pixel coordinates → real-world coordinates (meters)
+
+* 🧠 **Velocity Estimation with EMA Smoothing**
+
+  * Reduces noise and stabilizes motion
+
+* 🔮 **Future Trajectory Prediction**
+
+  * Predicts motion paths for up to 5 seconds
+
+* ⚠️ **Collision Prediction (TTC-based)**
+
+  * Uses relative velocity and position
+
+* 🚦 **Advanced Collision Filtering**
+
+  * Lateral and longitudinal constraints
+  * Eliminates false positives (parallel motion)
+
+* 📊 **Live Analytics**
+
+  * Vehicle count
+  * Speed estimation (km/h)
+
+---
+
 ## 🧠 Core Idea
 
-We model each vehicle using:
+Each object is modeled using:
 
 * Position: ( p )
 * Velocity: ( v )
 
-Then compute:
+Time-to-collision is computed as:
 
+```math
+t = - \frac{(p_2 - p_1) \cdot (v_2 - v_1)}{(v_2 - v_1) \cdot (v_2 - v_1)}
 ```
-t = - (rel_p ⋅ rel_v) / (rel_v ⋅ rel_v)
-```
 
-Where:
-
-* `rel_p = p2 - p1`
-* `rel_v = v2 - v1`
-
-This gives the **time at which two objects are closest** → used for collision prediction.
+This estimates **when two objects will be closest in the future**, enabling proactive collision detection.
 
 ---
 
@@ -108,38 +108,41 @@ This gives the **time at which two objects are closest** → used for collision 
 
 ```
 .
-├── main.py                # Main pipeline
-├── sort/                 # SORT tracking implementation
+├── main.py
+├── sort/
+│   └── sort.py
 ├── model/
-│   └── best.pt          # Trained YOLO model
+│   └── best.pt
 ├── input/
-│   └── video.mp4        # Input traffic video
+│   └── video.mp4
 ├── output/
-│   └── final_output.mp4 # Output processed video
+│   └── final_output.mp4
 ```
 
 ---
 
 ## ▶️ How to Run
 
-1. Install dependencies:
+### 1. Install dependencies
 
 ```bash
 pip install ultralytics opencv-python numpy
 ```
 
-2. Update paths in the script:
+### 2. Update paths in code
 
 * YOLO model path
 * Input video path
 
-3. Run:
+### 3. Run the script
 
 ```bash
 python main.py
 ```
 
-4. Output video will be saved in:
+### 4. Output
+
+The processed video will be saved at:
 
 ```
 /kaggle/working/final_output.mp4
@@ -162,8 +165,8 @@ python main.py
 
 * Collision visualization:
 
-  * Predicted intersection point
-  * Highlighted interaction paths
+  * Predicted interaction point
+  * Highlighted paths
 
 ---
 
@@ -172,18 +175,18 @@ python main.py
 | Parameter              | Description                     |
 | ---------------------- | ------------------------------- |
 | `ALPHA`                | Velocity smoothing factor (EMA) |
-| `dt`                   | Frame time interval             |
-| `TTC threshold`        | Max prediction window (5 sec)   |
-| Lateral threshold      | X-axis distance filter          |
-| Longitudinal threshold | Y-axis distance filter          |
+| `dt`                   | Time between frames             |
+| `TTC window`           | Prediction horizon (~5 sec)     |
+| Lateral threshold      | X-axis filter                   |
+| Longitudinal threshold | Y-axis filter                   |
 
 ---
 
 ## 🚀 Future Improvements
 
 * 🔥 Collision severity classification (vehicle vs pedestrian)
-* 📊 Traffic heatmaps
-* 🧠 DeepSORT / ReID for better tracking
+* 📊 Traffic density heatmaps
+* 🧠 DeepSORT / ReID tracking
 * 🌐 Multi-camera integration
 * 📈 Real-time dashboard
 
@@ -192,15 +195,15 @@ python main.py
 ## 🏆 Applications
 
 * Smart traffic monitoring systems
-* Autonomous driving safety modules
-* Accident prevention systems
+* Autonomous driving safety
+* Accident prevention
 * Urban traffic analytics
 
 ---
 
 ## 💡 Key Insight
 
-> This system predicts **where vehicles WILL be**, not just where they ARE.
+> This system predicts **where objects WILL be**, not just where they ARE.
 
 ---
 
@@ -208,17 +211,17 @@ python main.py
 
 * Ultralytics YOLO
 * SORT Tracking Algorithm
-* OpenCV community
+* OpenCV Community
 
 ---
 
-## 📬 Author
+## 👨‍💻 Author
 
-**Shashwat Kumar Jha**
+**Shashwat**
 IIT BHU
 
 ---
 
 ## ⭐ If you like this project
 
-Give it a star ⭐ — it helps a lot!
+Give it a ⭐ on GitHub — it helps a lot!
