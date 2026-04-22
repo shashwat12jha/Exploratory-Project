@@ -1,227 +1,368 @@
-# 🚀 Predictive Traffic Collision Detection System
+# 🚦 Automatic Video-Based Road Safety Analysis for Urban Streets using Conflict Technique
 
-A computer vision + physics-based system for **multi-class traffic monitoring and collision prediction** using real-world video data.
+### Surrogate Safety-Based Risk Detection using MTTC & PET
 
 ---
 
 ## 📌 Overview
 
-This project detects, tracks, and analyzes traffic participants in a video feed and predicts **potential collisions before they occur** using **time-to-collision (TTC)** and trajectory modeling.
+This project presents a **computer vision-based traffic safety analysis system** that detects and quantifies *near-miss events* (traffic conflicts) from video footage.
 
-Unlike traditional systems that rely only on proximity, this system is **predictive**, leveraging velocity and motion patterns to estimate future interactions.
+Instead of relying on crash data (which is rare and delayed), the system uses **Surrogate Safety Measures (SSMs)** to identify risky interactions in real time.
+
+### 🎯 Core Objective
+
+To detect, classify, and spatially analyze **traffic conflicts** using:
+
+* **MTTC (Modified Time to Collision)** → Rear-end conflicts
+* **PET (Post Encroachment Time)** → Crossing conflicts
 
 ---
 
-## 🔄 Pipeline Flowchart
+## 🧠 Why This Matters
 
-```mermaid
-flowchart TD
+Traditional accident analysis:
 
-A[Input Video] --> B[ROI Masking]
-B --> C[YOLO Detection]
+* Reactive ❌
+* Sparse data ❌
 
-C --> D[Class Filtering - Car / Person / 2W]
-D --> E[SORT Tracking]
+This system:
 
-E --> F[Pixel to World Mapping - Homography]
-F --> G[Trajectory History]
+* Proactive ✅
+* High-frequency safety insights ✅
+* Works on normal traffic video ✅
 
-G --> H[Velocity Estimation - EMA Smoothing]
-H --> I[Speed Calculation]
+👉 Enables **early intervention in dangerous zones**
 
-I --> J[Future Trajectory Prediction]
+---
 
-J --> K[Collision Detection - TTC and Relative Motion]
-K --> L[Filtering - Lateral and Longitudinal]
+## 🏗️ System Architecture
 
-L --> M[Visualization]
-M --> N[Output Video]
+```
+Input Video
+     ↓
+YOLO Object Detection
+     ↓
+SORT Multi-Object Tracking
+     ↓
+Homography (Pixel → World Mapping)
+     ↓
+Trajectory Estimation (EMA + Regression)
+     ↓
+Pairwise Vehicle Interaction Analysis
+     ↓
+Closest Approach Computation
+     ↓
+Scenario Classification
+     ↓
+Metric Evaluation (MTTC / PET)
+     ↓
+Risk Classification
+     ↓
+Persistence Filtering
+     ↓
+Heatmap Generation + Logging
+     ↓
+Final Outputs (Video + Excel + Heatmaps)
 ```
 
 ---
 
-## 🎯 Key Features
-
-* 🚗 **Multi-class Detection & Tracking**
-
-  * Car (0)
-  * Person (1)
-  * 2-Wheeler (2)
-
-* 📍 **Homography-based World Mapping**
-
-  * Converts pixel coordinates → real-world coordinates (meters)
-
-* 🧠 **Velocity Estimation with EMA Smoothing**
-
-  * Reduces noise and stabilizes motion
-
-* 🔮 **Future Trajectory Prediction**
-
-  * Predicts motion paths for up to 5 seconds
-
-* ⚠️ **Collision Prediction (TTC-based)**
-
-  * Uses relative velocity and position
-
-* 🚦 **Advanced Collision Filtering**
-
-  * Lateral and longitudinal constraints
-  * Eliminates false positives (parallel motion)
-
-* 📊 **Live Analytics**
-
-  * Vehicle count
-  * Speed estimation (km/h)
-
----
-
-## 🧠 Core Idea
-
-Each object is modeled using:
-
-* Position: ( p )
-* Velocity: ( v )
-
-Time-to-collision is computed as:
-
-```math
-t = - \frac{(p_2 - p_1) \cdot (v_2 - v_1)}{(v_2 - v_1) \cdot (v_2 - v_1)}
-```
-
-This estimates **when two objects will be closest in the future**, enabling proactive collision detection.
-
----
-
-## 🏗️ Tech Stack
-
-* **Python**
-* **OpenCV**
-* **NumPy**
-* **Ultralytics YOLO (custom trained model)**
-* **SORT Tracker**
-* **Homography (projective geometry)**
-
----
-
-## 📂 Project Structure
+## 🔄 Detailed Workflow
 
 ```
-.
-├── main.py
-├── sort/
-│   └── sort.py
-├── model/
-│   └── best.pt
-├── input/
-│   └── video.mp4
-├── output/
-│   └── final_output.mp4
+               ┌──────────────────────┐
+               │   Input Video Feed   │
+               └─────────┬────────────┘
+                         ↓
+            ┌──────────────────────────┐
+            │ YOLO Detection (Vehicles)│
+            └─────────┬────────────────┘
+                      ↓
+            ┌──────────────────────────┐
+            │ SORT Tracking (ID assign)│
+            └─────────┬────────────────┘
+                      ↓
+        ┌──────────────────────────────┐
+        │ Homography Transformation    │
+        │ Pixel → Real World (meters)  │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Trajectory Estimation        │
+        │ EMA Velocity + Regression    │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Pairwise Vehicle Analysis    │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Closest Approach Calculation │
+        │ (t_ca, d_ca, conflict point) │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Scenario Classification      │
+        │ Rear-End vs Crossing         │
+        └───────┬───────────┬──────────┘
+                ↓           ↓
+        ┌──────────────┐ ┌──────────────┐
+        │ Rear-End     │ │ Crossing     │
+        │              │ │              │
+        │ MTTC + DRAC  │ │ PET          │
+        └──────┬───────┘ └──────┬───────┘
+               ↓                ↓
+        ┌──────────────────────────────┐
+        │ Risk Classification          │
+        │ CRITICAL / WARNING / MONITOR │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Persistence Filtering        │
+        │ (remove flickering alerts)   │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Heatmap Accumulation         │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Logging (Excel + Summary)    │
+        └─────────┬────────────────────┘
+                  ↓
+        ┌──────────────────────────────┐
+        │ Final Outputs                │
+        │ Video + Heatmaps + Logs      │
+        └──────────────────────────────┘
 ```
 
 ---
 
-## ▶️ How to Run
+## ⚙️ Core Components
 
-### 1. Install dependencies
+### 🔍 1. Object Detection
 
-```bash
-pip install ultralytics opencv-python numpy
+* Model: YOLO (Ultralytics)
+* Detects:
+
+  * Cars
+  * Two-wheelers
+  * Pedestrians
+
+---
+
+### 🧾 2. Multi-Object Tracking
+
+* Algorithm: SORT
+* Assigns persistent IDs across frames
+
+---
+
+### 🌍 3. World Coordinate Mapping
+
+* Homography transforms pixel → meters
+* Enables **real-world physics-based analysis**
+
+---
+
+### 📈 4. Motion Estimation
+
+* **Velocity** → Exponential Moving Average (EMA)
+* **Direction** → Regression (stable trajectory)
+* **Acceleration** → Derived from velocity
+
+---
+
+## ⚠️ Conflict Detection Logic
+
+### Step 1: Distance Filtering
+
+Ignore far-away vehicles
+
+### Step 2: Closest Approach
+
+Compute:
+
+* Time to closest approach (TCA)
+* Minimum distance
+* Conflict point
+
+### Step 3: Scenario Classification
+
+| Scenario | Condition          |
+| -------- | ------------------ |
+| Rear-End | Same direction     |
+| Crossing | Intersecting paths |
+
+---
+
+## 📊 Safety Metrics
+
+### 🔴 Rear-End Conflicts
+
+* **TTC** → Time to Collision
+* **DRAC** → Required deceleration
+* **MTTC** → Accounts for acceleration
+
+---
+
+### 🔵 Crossing Conflicts
+
+* **PET (Post Encroachment Time)**
+
+[
+PET = |t_1 - t_2|
+]
+
+Where:
+
+* ( t_1, t_2 ) = arrival times at conflict point
+
+---
+
+## 🚨 Risk Classification
+
+### Rear-End
+
+| Level    | Condition                                |
+| -------- | ---------------------------------------- |
+| CRITICAL | TTC < 1.5s AND DRAC ≥ 3.4 AND MTTC < 1.5 |
+| WARNING  | Moderate risk                            |
+| MONITOR  | Safe                                     |
+
+---
+
+### Crossing
+
+| Level    | Condition   |
+| -------- | ----------- |
+| CRITICAL | PET < 1.0 s |
+| WARNING  | PET < 2.0 s |
+| MONITOR  | PET ≥ 2.0 s |
+
+---
+
+## 🔥 Heatmap Generation
+
+### 🔴 MTTC Heatmap
+
+* Only counts:
+
+```
+MTTC < 1.5 seconds
 ```
 
-### 2. Update paths in code
+✔ Represents **critical rear-end conflicts**
 
-* YOLO model path
-* Input video path
+---
 
-### 3. Run the script
+### 🔵 PET Heatmap
 
-```bash
-python main.py
-```
-
-### 4. Output
-
-The processed video will be saved at:
+* Only counts:
 
 ```
-/kaggle/working/final_output.mp4
+PET < 2.0 seconds
+```
+
+📚 Based on:
+
+* Allen et al. (1978)
+* FHWA Traffic Conflict Technique
+
+✔ Represents **unsafe crossing interactions**
+
+---
+
+## 📁 Outputs
+
+Generated after execution:
+
+```
+/kaggle/working/
+│
+├── final.mp4                         # Annotated video
+├── collision_log.xlsx               # Event log
+├── heatmap_mttc_rearend.png         # Rear-end conflicts
+├── heatmap_pet_crossing.png         # Crossing conflicts
+├── heatmap_combined.png             # Combined view
 ```
 
 ---
 
-## 📸 Output Highlights
+## 📊 Excel Log Structure
 
-* Bounding boxes with:
+Includes:
 
-  * Class labels
-  * Speed (km/h)
-  * Track ID
+* Vehicle IDs
+* Scenario type
+* TTC, DRAC, MTTC, PET
+* Risk level
+* Timestamp
 
-* Trajectories:
+Also provides:
 
-  * Past (smoothed)
-  * Future (predicted)
-
-* Collision visualization:
-
-  * Predicted interaction point
-  * Highlighted paths
+* Pair-wise summary
+* Peak risk detection
 
 ---
 
-## ⚙️ Important Parameters
+## 🧪 Key Strengths
 
-| Parameter              | Description                     |
-| ---------------------- | ------------------------------- |
-| `ALPHA`                | Velocity smoothing factor (EMA) |
-| `dt`                   | Time between frames             |
-| `TTC window`           | Prediction horizon (~5 sec)     |
-| Lateral threshold      | X-axis filter                   |
-| Longitudinal threshold | Y-axis filter                   |
+* Physics-based modeling (not just ML)
+* Scenario-aware risk computation
+* Noise reduction via persistence filtering
+* Spatial risk visualization
+* Research-backed thresholds
 
 ---
 
-## 🚀 Future Improvements
+## 📚 References
 
-* 🔥 Collision severity classification (vehicle vs pedestrian)
-* 📊 Traffic density heatmaps
-* 🧠 DeepSORT / ReID tracking
-* 🌐 Multi-camera integration
-* 📈 Real-time dashboard
+* Allen, B. L., Shin, B. T., & Cooper, P. J. (1978)
+  *Analysis of Traffic Conflicts and Collisions*
 
----
+* Gettman, D., & Head, L. (2003)
+  *Surrogate Safety Measures from Traffic Simulation Models*
 
-## 🏆 Applications
-
-* Smart traffic monitoring systems
-* Autonomous driving safety
-* Accident prevention
-* Urban traffic analytics
+* AASHTO
+  *Design Guidelines for DRAC*
 
 ---
 
-## 💡 Key Insight
+## 🚀 Future Work
 
-> This system predicts **where objects WILL be**, not just where they ARE.
+* Real-time deployment (CCTV integration)
+* Lane-wise conflict detection
+* AI-based trajectory prediction (LSTM / Transformer)
+* Risk normalization by traffic density
+* Dashboard visualization
 
 ---
 
-## 🙌 Acknowledgements
+## 🛠️ Tech Stack
 
-* Ultralytics YOLO
-* SORT Tracking Algorithm
-* OpenCV Community
+* Python
+* OpenCV
+* YOLO (Ultralytics)
+* SORT Tracker
+* NumPy
+* Matplotlib
+* OpenPyXL
 
 ---
 
 ## 👨‍💻 Author
 
-**Shashwat**
-IIT BHU
+**Shashwat Kumar Jha**
+IIT (BHU), Varanasi
 
 ---
 
-## ⭐ If you like this project
+## ⭐ Support
 
-Give it a ⭐ on GitHub — it helps a lot!
+If you found this useful:
+
+* Star ⭐ the repo
+* Fork 🍴 it
+* Build on it 🚀
