@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+opencv-python-headless
+torch
+torchvision
+torchaudio
+ultralytics
+pandas
+openpyxl
+filterpy
