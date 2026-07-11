@@ -223,6 +223,7 @@ After execution, the system generates the following assets:
 * **Data Processing:** OpenPyXL (for Excel logging)
 
 ---
+Note: Download the model weights (best.pt) from the Releases page and place them in the backend/ directory before running docker-compose.
 
 ## 🚀 Future Work
 
